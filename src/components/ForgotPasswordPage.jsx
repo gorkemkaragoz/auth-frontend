@@ -1,4 +1,6 @@
 import { useState } from 'react';
+import axios from 'axios';
+import toast from 'react-hot-toast';
 
 export default function ForgotPasswordPage({ onNavigate }) {
   const [email, setEmail] = useState('');
@@ -12,15 +14,26 @@ export default function ForgotPasswordPage({ onNavigate }) {
     }
 
     setIsLoading(true);
-    setTimeout(() => {
-      setIsLoading(false);
+    const loadingToast = toast.loading('Sending verification code...');
+
+    try {
+      await axios.post('http://localhost:8080/auth/forgot-password', { email });
+      
+      toast.dismiss(loadingToast);
+      toast.success('Code sent! Check your email.');
+      
       onNavigate('verify-otp', { email });
-    }, 1500);
+    } catch (err) {
+      toast.dismiss(loadingToast);
+      setError('User not found or connection failed.');
+      toast.error('Failed to send code.');
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-500 via-purple-500 to-purple-600 flex items-center justify-center px-4 relative">
-      {/* Logo */}
       <div className="absolute top-8 left-8 flex items-center gap-3 text-white">
         <div className="w-10 h-10 bg-white rounded-lg flex items-center justify-center">
           <svg className="w-6 h-6 text-purple-600" fill="none" stroke="currentColor" strokeWidth="3" viewBox="0 0 24 24">
@@ -30,7 +43,6 @@ export default function ForgotPasswordPage({ onNavigate }) {
         <span className="text-2xl font-bold">Authify</span>
       </div>
 
-      {/* Back Button */}
       <button
         onClick={() => onNavigate('login')}
         className="absolute top-8 right-8 text-white hover:text-gray-200 transition-colors"
@@ -40,7 +52,6 @@ export default function ForgotPasswordPage({ onNavigate }) {
         </svg>
       </button>
 
-      {/* Forgot Password Card */}
       <div className="bg-white rounded-3xl shadow-2xl p-10 w-full max-w-md">
         <div className="text-center mb-8">
           <div className="w-16 h-16 bg-purple-100 rounded-full flex items-center justify-center mx-auto mb-4">

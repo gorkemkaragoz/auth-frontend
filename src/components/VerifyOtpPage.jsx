@@ -1,4 +1,5 @@
 import { useState, useRef, useEffect } from 'react';
+import toast from 'react-hot-toast';
 
 export default function VerifyOtpPage({ onNavigate, email }) {
   const [otp, setOtp] = useState(['', '', '', '', '', '']);
@@ -42,10 +43,11 @@ export default function VerifyOtpPage({ onNavigate, email }) {
     inputRefs.current[Math.min(pastedData.length, 5)]?.focus();
   };
 
-  const handleVerify = async () => {
+  const handleVerify = () => {
     const otpCode = otp.join('');
     if (otpCode.length !== 6) {
       setError('Please enter all 6 digits.');
+      toast.error('Incomplete code!');
       return;
     }
 
@@ -53,18 +55,18 @@ export default function VerifyOtpPage({ onNavigate, email }) {
     setTimeout(() => {
       setIsLoading(false);
       onNavigate('reset-password', { email, otp: otpCode });
-    }, 1500);
+    }, 500);
   };
 
   const handleResend = () => {
     setOtp(['', '', '', '', '', '']);
     setError('');
-    alert('Verification code resent to ' + email);
+    toast.success('Code resend triggered!');
+    // Backend logic for resend can be added here
   };
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-500 via-purple-500 to-purple-600 flex items-center justify-center px-4 relative">
-      {/* Logo */}
       <div className="absolute top-8 left-8 flex items-center gap-3 text-white">
         <div className="w-10 h-10 bg-white rounded-lg flex items-center justify-center">
           <svg className="w-6 h-6 text-purple-600" fill="none" stroke="currentColor" strokeWidth="3" viewBox="0 0 24 24">
@@ -74,7 +76,6 @@ export default function VerifyOtpPage({ onNavigate, email }) {
         <span className="text-2xl font-bold">Authify</span>
       </div>
 
-      {/* Back Button */}
       <button
         onClick={() => onNavigate('forgot-password')}
         className="absolute top-8 right-8 text-white hover:text-gray-200 transition-colors"
@@ -84,7 +85,6 @@ export default function VerifyOtpPage({ onNavigate, email }) {
         </svg>
       </button>
 
-      {/* OTP Card */}
       <div className="bg-white rounded-3xl shadow-2xl p-10 w-full max-w-md">
         <div className="text-center mb-8">
           <div className="w-16 h-16 bg-purple-100 rounded-full flex items-center justify-center mx-auto mb-4">
@@ -100,7 +100,6 @@ export default function VerifyOtpPage({ onNavigate, email }) {
         </div>
         
         <div className="space-y-6">
-          {/* OTP Input */}
           <div className="flex justify-center gap-2">
             {otp.map((digit, index) => (
               <input

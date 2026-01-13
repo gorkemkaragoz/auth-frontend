@@ -1,4 +1,6 @@
 import { useState } from 'react';
+import axios from 'axios';
+import toast from 'react-hot-toast';
 
 export default function LoginPage({ onNavigate }) {
   const [formData, setFormData] = useState({
@@ -14,19 +16,32 @@ export default function LoginPage({ onNavigate }) {
     }));
   };
 
-  const handleLogin = () => {
-    if (formData.email === 'gorkem@example.com') {
-      onNavigate('admin-dashboard');
-    } else {
-      onNavigate('home');
+  const handleLogin = async () => {
+    const loadingToast = toast.loading('Signing in...');
+
+    try {
+      const response = await axios.post('http://localhost:8080/auth/login', formData);
+      
+      localStorage.setItem('token', response.data.token);
+      localStorage.setItem('userRole', response.data.role);
+
+      toast.dismiss(loadingToast);
+      toast.success('Login successful!');
+
+      if (response.data.role === 'ROLE_ADMIN') {
+        onNavigate('admin-dashboard');
+      } else {
+        onNavigate('dashboard', { user: response.data });
+      }
+    } catch (err) {
+      toast.dismiss(loadingToast);
+      const errorMessage = err.response?.data?.message || 'Invalid credentials.';
+      toast.error(errorMessage);
     }
-    
-    setFormData({ email: '', password: '' });
   };
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-500 via-purple-500 to-purple-600 flex items-center justify-center px-4 relative">
-      {/* Logo */}
       <div 
         className="absolute top-8 left-8 flex items-center gap-3 text-white cursor-pointer"
         onClick={() => onNavigate('home')}
@@ -39,7 +54,6 @@ export default function LoginPage({ onNavigate }) {
         <span className="text-2xl font-bold">Authify</span>
       </div>
 
-      {/* Login Card */}
       <div className="bg-white rounded-3xl shadow-2xl p-10 w-full max-w-md">
         <h2 className="text-3xl font-bold text-gray-900 mb-8 text-center">Login</h2>
         

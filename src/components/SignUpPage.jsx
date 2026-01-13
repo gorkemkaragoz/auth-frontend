@@ -1,4 +1,6 @@
 import { useState } from 'react';
+import axios from 'axios';
+import toast from 'react-hot-toast';
 
 export default function SignUpPage({ onNavigate }) {
   const [formData, setFormData] = useState({
@@ -31,16 +33,26 @@ export default function SignUpPage({ onNavigate }) {
     return Object.keys(newErrors).length === 0;
   };
 
-  const handleSignUp = () => {
+  const handleSignUp = async () => {
     if (validateSignUp()) {
-      onNavigate('login');
-      setFormData({ firstName: '', lastName: '', email: '', password: '' });
+      const loadingToast = toast.loading('Creating account...');
+      try {
+        await axios.post('http://localhost:8080/auth/register', formData);
+        
+        toast.dismiss(loadingToast);
+        toast.success('Registration successful! Please login.');
+        
+        onNavigate('login');
+      } catch (err) {
+        toast.dismiss(loadingToast);
+        const errorMessage = err.response?.data?.message || 'Server connection failed.';
+        toast.error(errorMessage);
+      }
     }
   };
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-500 via-purple-500 to-purple-600 flex items-center justify-center px-4 relative">
-      {/* Logo */}
       <div 
         className="absolute top-8 left-8 flex items-center gap-3 text-white cursor-pointer"
         onClick={() => onNavigate('home')}
@@ -57,7 +69,6 @@ export default function SignUpPage({ onNavigate }) {
         <h2 className="text-3xl font-bold text-gray-900 mb-8 text-center">Create Account</h2>
         
         <div className="space-y-4">
-          {/* İsim ve Soyisim Yan Yana */}
           <div className="flex gap-4">
             <div className="flex-1">
               <label className="block text-sm font-medium text-gray-700 mb-1">First Name</label>
