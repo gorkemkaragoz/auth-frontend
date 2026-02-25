@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
-import axios from 'axios';
+import apiClient from '../api/apiClient';
 import toast from 'react-hot-toast';
+import getErrorMessage from '../utils/getErrorMessage';
 
 export default function AdminDashboardPage({ onNavigate }) {
   const [users, setUsers] = useState([]);
@@ -20,14 +21,11 @@ export default function AdminDashboardPage({ onNavigate }) {
 
   const fetchUsers = async () => {
     try {
-      const token = localStorage.getItem('token');
-      const response = await axios.get('http://localhost:8080/users', {
-        headers: { Authorization: `Bearer ${token}` }
-      });
+      const response = await apiClient.get('/users');
       setUsers(response.data);
       setIsLoading(false);
     } catch (err) {
-      toast.error('Failed to fetch users.');
+      toast.error(getErrorMessage(err, 'Failed to load users. Please try again.'));
       setIsLoading(false);
     }
   };
@@ -37,17 +35,14 @@ export default function AdminDashboardPage({ onNavigate }) {
 
     const loadingToast = toast.loading('Deleting user...');
     try {
-      const token = localStorage.getItem('token');
-      await axios.delete(`http://localhost:8080/users/${id}`, {
-        headers: { Authorization: `Bearer ${token}` }
-      });
+      await apiClient.delete(`/users/${id}`);
       
       setUsers(users.filter(user => user.id !== id));
       toast.dismiss(loadingToast);
       toast.success('User deleted successfully.');
     } catch (err) {
       toast.dismiss(loadingToast);
-      toast.error('Failed to delete user.');
+      toast.error(getErrorMessage(err, 'Failed to delete user. Please try again.'));
     }
   };
 
@@ -64,18 +59,12 @@ export default function AdminDashboardPage({ onNavigate }) {
   const handleUpdateUser = async () => {
     const loadingToast = toast.loading('Updating user info...');
     try {
-      const token = localStorage.getItem('token');
-      
-
       const payload = {
         ...editFormData,
-        role: editingUser.role 
+        role: editingUser.role
       };
 
-      const response = await axios.put(`http://localhost:8080/users/${editingUser.id}`, 
-        payload, 
-        { headers: { Authorization: `Bearer ${token}` } }
-      );
+      const response = await apiClient.put(`/users/${editingUser.id}`, payload);
 
       setUsers(users.map(u => (u.id === editingUser.id ? response.data : u)));
       
@@ -84,13 +73,14 @@ export default function AdminDashboardPage({ onNavigate }) {
       setIsEditModalOpen(false);
     } catch (err) {
       toast.dismiss(loadingToast);
-      toast.error('Update failed: ' + (err.response?.data?.message || 'Unknown error'));
+      toast.error(getErrorMessage(err, 'Failed to update user. Please try again.'));
     }
   };
 
   const handleLogout = () => {
     localStorage.removeItem('token');
     localStorage.removeItem('userRole');
+    localStorage.removeItem('userData');
     toast.success('Admin logged out.');
     onNavigate('home');
   };

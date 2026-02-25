@@ -1,6 +1,7 @@
 import { useState } from 'react';
-import axios from 'axios';
+import apiClient from '../api/apiClient';
 import toast from 'react-hot-toast';
+import getErrorMessage from '../utils/getErrorMessage';
 
 export default function ForgotPasswordPage({ onNavigate }) {
   const [email, setEmail] = useState('');
@@ -17,7 +18,7 @@ export default function ForgotPasswordPage({ onNavigate }) {
     const loadingToast = toast.loading('Sending verification code...');
 
     try {
-      await axios.post('http://localhost:8080/auth/forgot-password', { email });
+      await apiClient.post('/auth/forgot-password', { email });
       
       toast.dismiss(loadingToast);
       toast.success('Code sent! Check your email.');
@@ -25,8 +26,9 @@ export default function ForgotPasswordPage({ onNavigate }) {
       onNavigate('verify-otp', { email });
     } catch (err) {
       toast.dismiss(loadingToast);
-      setError('User not found or connection failed.');
-      toast.error('Failed to send code.');
+      const message = getErrorMessage(err, 'No account found with this email address.');
+      setError(message);
+      toast.error(message);
     } finally {
       setIsLoading(false);
     }
@@ -75,6 +77,7 @@ export default function ForgotPasswordPage({ onNavigate }) {
                 setEmail(e.target.value);
                 setError('');
               }}
+              onKeyDown={(e) => { if (e.key === 'Enter') handleSubmit(); }}
               placeholder="Enter your email"
               className={`w-full px-4 py-3 border ${error ? 'border-red-500' : 'border-gray-300'} rounded-lg focus:outline-none focus:border-blue-500 transition-colors`}
             />

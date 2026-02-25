@@ -10,8 +10,26 @@ import AdminDashboardPage from './components/AdminDashboardPage';
 import DashboardPage from './components/DashboardPage';
 
 function App() {
-  const [currentPage, setCurrentPage] = useState('home');
-  const [navData, setNavData] = useState({});
+  const [currentPage, setCurrentPage] = useState(() => {
+    const token = localStorage.getItem('token');
+    const userRole = localStorage.getItem('userRole');
+    if (token) {
+      return userRole === 'ROLE_ADMIN' ? 'admin-dashboard' : 'dashboard';
+    }
+    return 'home';
+  });
+
+  const [navData, setNavData] = useState(() => {
+    const raw = localStorage.getItem('userData');
+    if (raw) {
+      try {
+        return { user: JSON.parse(raw) };
+      } catch {
+        return {};
+      }
+    }
+    return {};
+  });
 
   const handleNavigate = (page, data = {}) => {
     setNavData(data);

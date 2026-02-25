@@ -10,6 +10,7 @@ export default function DashboardPage({ onNavigate, user }) {
     
     localStorage.removeItem('token');
     localStorage.removeItem('userRole');
+    localStorage.removeItem('userData');
     
     toast.success('Successfully logged out!');
     onNavigate('home');
